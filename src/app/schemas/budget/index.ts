@@ -1,2 +1,2 @@
 export * from './budget.interface';
-export * from './organization.schema';
+export * from './budget.schema';
