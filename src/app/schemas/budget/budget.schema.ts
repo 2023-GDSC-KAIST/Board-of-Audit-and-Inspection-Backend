@@ -13,6 +13,11 @@ const BudgetSchema = new Schema<IBudget>({
     enum: FundSource,
     default: FundSource.학생회비,
   },
+  item: {
+    type: Types.ObjectId,
+    ref: 'Item',
+    required: true,
+  },
   budget: {
     type: Number,
     required: true,
