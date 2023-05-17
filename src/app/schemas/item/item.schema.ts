@@ -22,4 +22,12 @@ const ItemSchema = new Schema<IItem>({
   },
 });
 
+// item & sub_item & detail_item이 모두 동시에 존재하면 안됨
+ItemSchema.pre('save', async function (next) {
+  if (this.item && (this.sub_item || this.detail_item)) {
+    next(new Error('Invalid item: 항목과 소항목 혹은 세부항목이 동시에 존재'));
+  }
+  next();
+});
+
 export const Item = model<IItem>('Item', ItemSchema);
