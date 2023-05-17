@@ -5,4 +5,4 @@ const router: Router = express.Router();
 
 router.route('/').post(OrganizationController.createOrganization);
 
-export const organizationsRouter: Router = router;
+export const organizationRouter: Router = router;
