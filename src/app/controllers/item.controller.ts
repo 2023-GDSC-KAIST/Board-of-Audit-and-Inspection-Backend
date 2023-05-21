@@ -4,16 +4,13 @@ import { Item } from '../schemas/item';
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
-    let newItem;
-    if(req.body.item){
-    const { organization, year, item} = req.body;
-    newItem = new Item( { organization, year, item});
-    }
-    if(!req.body.item) {
-    const { organization, year, sub_item, detail_item} = req.body;
-    newItem = new Item( { organization, year, sub_item, detail_item});
-    }
-    
+    const organization =req.body.organization;
+    const year= req.body.year;
+    const item = req.body.item;
+    const sub_item= req.body.sub_item;
+    const detail_item= req.body.detail_item;
+    const newItem = new Item( { organization, year, item, sub_item, detail_item});
+
     res.json(newItem);
   } catch (error) {
     next(error);
