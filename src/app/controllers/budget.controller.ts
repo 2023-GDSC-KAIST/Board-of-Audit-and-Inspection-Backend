@@ -10,7 +10,7 @@ export async function register_expense(req: Request, res: Response, next: NextFu
             budget: req.body.budget,
             remarks: req.body.remarks,
         });
-        res.json(expense); // DB Expense collections에 등록 필요
+        res.json(expense);
     } catch (err) {
         next(err);
     }
