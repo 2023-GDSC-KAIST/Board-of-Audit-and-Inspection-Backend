@@ -1,8 +1,8 @@
 import express, { Router } from 'express';
-import { register_expense, modify_expense } from '../controllers/budget.controller';
+import { registerExpense, modifyExpense, getExpenseBudgets } from '../controllers/budget.controller';
 
 const router: Router = express.Router();
-router.post('/:org_id/:year/expense', register_expense)
-router.patch('/:org_id/:year/expense', modify_expense)
-
+router.post('/:org_id/:year/expense', registerExpense)
+router.patch('/:org_id/:year/expense', modifyExpense)
+router.get('/:org_id/:year/expense', getExpenseBudgets)
 export const budgetRouter: Router = router;
