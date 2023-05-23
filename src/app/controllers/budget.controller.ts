@@ -38,7 +38,7 @@ export async function getExpenseBudgets(req: Request, res: Response, next: NextF
     const filter = {
       organization: req.params.org_id, // Filter by organizationId
       'item.year': req.params.year, // Filter by year field in item
-      'item.item': { $exists: false }, // Filter by existence of item field in item
+    //   'item.item': { $exists: false }, // Filter by existence of item field in item
     };
 
     // Find the budgets using the filter
