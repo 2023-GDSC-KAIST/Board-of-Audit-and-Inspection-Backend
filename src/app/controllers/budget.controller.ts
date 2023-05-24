@@ -1,6 +1,33 @@
 import { NextFunction, Request, Response } from 'express';
 import { Budget, Organization, Item } from '../schemas';
 
+// /* organization의 특정 년도 income 조회 */
+export async function getBudgetIncome(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const organization = await Organization.findOne({
+      name: req.params.organization,
+    });
+    if (!organization) {
+      return res.status(404).send('organization not found');
+    }
+
+    const budgets = await Budget.find({
+      organization: organization,
+      year: req.params.year,
+      budget: {
+        $gte: 0,
+      },
+    });
+    res.json(budgets);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function createBudgetIncome(
   req: Request,
   res: Response,
@@ -18,10 +45,12 @@ export async function createBudgetIncome(
     const budget = await Budget.findOneAndUpdate(
       {
         organization: organization,
+        year: req.params.year,
         item: req.body.item,
       },
       {
         organization: organization,
+        year: req.params.year,
         fund_source: req.body.fund_source,
         item: req.body.item,
         budget: req.body.budget,
@@ -37,26 +66,6 @@ export async function createBudgetIncome(
     next(error);
   }
 }
-
-// /* organization의 특정 년도 income 조회 */
-// export async function getBudgetIncome(req: Request, res: Response, next: NextFunction) {
-//   try {
-//     const organizationId = req.params.org_id;
-//     const year = req.params.year;
-
-//     const items = await Item.find({organization: organizationId, year: year});
-
-//     // const id: string = req.params.id;
-//     // const user: UserDocument | null = await User.findById(id).exec();
-//     // if (!user) {
-//     //   res.status(404).send(`User with ID ${id} not found`);
-//     // } else {
-//     //   res.status(200).json(user);
-//     // }
-//   } catch (error) {
-//     next(error);
-//   }
-// }
 
 /* budget (income) update */
 export async function updateBudgetIncome(

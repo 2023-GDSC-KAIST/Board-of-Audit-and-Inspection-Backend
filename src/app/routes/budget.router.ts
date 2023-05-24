@@ -7,6 +7,7 @@ export const budgetRouter: Router = router;
 
 router
   .route('/:organization/:year/income')
+  .get(BudgetController.getBudgetIncome)
   .post(BudgetController.createBudgetIncome);
 
 /* Create new budget(income) */
