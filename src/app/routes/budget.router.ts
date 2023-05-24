@@ -5,6 +5,10 @@ const router: Router = express.Router();
 
 export const budgetRouter: Router = router;
 
+router
+  .route('/:organization/:year/income')
+  .post(BudgetController.createBudgetIncome);
+
 /* Create new budget(income) */
 router.post('/:org_id/:year/income', BudgetController.createBudgetIncome);
 
