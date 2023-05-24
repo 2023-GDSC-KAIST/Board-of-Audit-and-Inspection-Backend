@@ -5,6 +5,8 @@ const router: Router = express.Router();
 
 router.route('/:organization/:year').post(ItemController.createItem);
 
+router.route('/:id').put(ItemController.updateItem);
+
 // router
 //   .route('/:id')
 //   .patch(ItemController.modify)
