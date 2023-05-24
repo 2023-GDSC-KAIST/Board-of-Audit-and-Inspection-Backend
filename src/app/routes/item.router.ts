@@ -3,7 +3,10 @@ import { ItemController } from '../controllers';
 
 const router: Router = express.Router();
 
-router.route('/:organization/:year').post(ItemController.createItem);
+router
+  .route('/:organization/:year')
+  .get(ItemController.listItems)
+  .post(ItemController.createItem);
 
 router.route('/:id').put(ItemController.updateItem);
 

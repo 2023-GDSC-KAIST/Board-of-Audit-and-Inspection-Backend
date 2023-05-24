@@ -2,6 +2,29 @@ import { NextFunction, Request, Response, request } from 'express';
 import { Item } from '../schemas/item';
 import { Organization } from '../schemas';
 
+export async function listItems(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const organization = await Organization.findOne({
+      name: req.params.organization,
+    });
+    if (!organization) {
+      return res.status(404).send('organization not found');
+    }
+
+    const item = await Item.find({
+      organization: organization,
+      year: req.params.year,
+    });
+    res.json(item);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function createItem(
   req: Request,
   res: Response,
@@ -95,22 +118,6 @@ export async function deleteItem(
   try {
     const item = await Item.findByIdAndDelete(itemID);
     res.json({ message: 'item successfully deleted', item });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function getByYear(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const itemYear = req.params.year;
-
-  try {
-    const item = await Item.findOne({ year: itemYear });
-    //    logger.info(item);
-    res.json(item);
   } catch (error) {
     next(error);
   }
