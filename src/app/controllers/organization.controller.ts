@@ -1,6 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import { Organization } from '../schemas/organization';
 
+export async function listOrganizations(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const organizations = await Organization.find();
+    res.json(organizations);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function createOrganization(
   req: Request,
   res: Response,

@@ -3,6 +3,9 @@ import { OrganizationController } from '../controllers';
 
 const router: Router = express.Router();
 
-router.route('/').post(OrganizationController.createOrganization);
+router
+  .route('/')
+  .get(OrganizationController.listOrganizations)
+  .post(OrganizationController.createOrganization);
 
 export const organizationRouter: Router = router;
