@@ -38,3 +38,18 @@ export async function createOrganization(
     next(error);
   }
 }
+
+export async function deleteOrganization(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const organization = await Organization.deleteOne({
+      name: req.body.name,
+    });
+    res.json(organization);
+  } catch (error) {
+    next(error);
+  }
+}

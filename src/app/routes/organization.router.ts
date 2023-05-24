@@ -6,6 +6,7 @@ const router: Router = express.Router();
 router
   .route('/')
   .get(OrganizationController.listOrganizations)
-  .post(OrganizationController.createOrganization);
+  .post(OrganizationController.createOrganization)
+  .delete(OrganizationController.deleteOrganization);
 
 export const organizationRouter: Router = router;
