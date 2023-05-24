@@ -8,16 +8,9 @@ router
   .get(ItemController.listItems)
   .post(ItemController.createItem);
 
-router.route('/:id').put(ItemController.updateItem);
+router
+  .route('/:id')
+  .put(ItemController.updateItem)
+  .delete(ItemController.deleteItem);
 
-// router
-//   .route('/:id')
-//   .patch(ItemController.modify)
-
-//   .delete(ItemController.deleteItem);
-
-// router.route('/getItemYear/:year').get(ItemController.getByYear);
-// router
-//   .route('/getItemOrgan/:organization')
-//   .get(ItemController.getByOrganization);
 export const itemRouter: Router = router;

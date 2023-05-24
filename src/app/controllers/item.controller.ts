@@ -114,25 +114,8 @@ export async function deleteItem(
   res: Response,
   next: NextFunction,
 ) {
-  const itemID = req.params.id;
   try {
-    const item = await Item.findByIdAndDelete(itemID);
-    res.json({ message: 'item successfully deleted', item });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function getByOrganization(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const itemOrganization = req.params.Organization;
-
-  try {
-    const item = await Item.findOne({ organization: itemOrganization });
-    //   logger.info(item);
+    const item = await Item.findByIdAndRemove(req.params.id);
     res.json(item);
   } catch (error) {
     next(error);
