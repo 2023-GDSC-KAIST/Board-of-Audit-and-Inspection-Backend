@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { Budget, Organization, Item } from '../schemas';
+import { Budget, Organization } from '../schemas';
 
 // /* organization의 특정 년도 income 조회 */
 export async function getBudgetIncome(
