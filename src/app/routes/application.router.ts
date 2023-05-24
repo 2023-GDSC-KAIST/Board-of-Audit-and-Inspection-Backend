@@ -7,7 +7,7 @@ import { transactionRouter } from './transaction.router';
 const router: Router = express.Router();
 router.use('/organization', organizationRouter);
 router.use('/budget', budgetRouter);
-router.use('/item', itemRouter);
+router.use('/items', itemRouter);
 router.use('/transaction', transactionRouter);
 
 export const applicationRouter: Router = router;
