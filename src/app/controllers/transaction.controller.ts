@@ -1,10 +1,46 @@
 import { NextFunction, Request, Response } from 'express';
-import { Transaction } from '../schemas/transaction';
+import { Organization, Transaction } from '../schemas';
 
-export async function createTransaction(req: Request, res: Response, next: NextFunction) {
+export async function getTransactions(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
+    //TODO: filter 추가
+    const organization = await Organization.findOne({
+      name: req.params.organization,
+    });
+    if (!organization) {
+      return res.status(404).send('organization not found');
+    }
+
+    const transactions = await Transaction.find({
+      organization: organization,
+    });
+    res.json(transactions);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function createTransaction(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const organization = await Organization.findOne({
+      name: req.params.organization,
+    });
+    if (!organization) {
+      return res.status(404).send('organization not found');
+    }
+
+    //TOOD: 수입 / 지출 validation
     const transaction = await Transaction.create({
-      organization: req.body.organization,
+      organization: organization,
+      year: req.params.year,
       business_at: req.body.business_at,
       manager: req.body.manager,
       item: req.body.item,
@@ -15,7 +51,7 @@ export async function createTransaction(req: Request, res: Response, next: NextF
       bank_name: req.body.bank_name,
       account_holder: req.body.account_holder,
       account_number: req.body.account_number,
-      receipts: req.body.receipts,
+      // receipts: req.body.receipts,
       remarks: req.body.remarks,
     });
     res.json(transaction);
@@ -24,45 +60,44 @@ export async function createTransaction(req: Request, res: Response, next: NextF
   }
 }
 
-export async function modifyTransaction(req: Request, res: Response, next: NextFunction) {
-  const { id } = req.params;
-  const updateData = req.body;
-
+export async function modifyTransaction(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    const transaction = await Transaction.findByIdAndUpdate(id, updateData, { new: true });
+    //TOOD: 수입 / 지출 validation
+    const transaction = await Transaction.findByIdAndUpdate(
+      req.params.id,
+      {
+        business_at: req.body.business_at,
+        manager: req.body.manager,
+        income: req.body.income,
+        expense: req.body.expense,
+        balance: req.body.balance,
+        transaction_at: req.body.transaction_at,
+        bank_name: req.body.bank_name,
+        account_holder: req.body.account_holder,
+        account_number: req.body.account_number,
+        // receipts: req.body.receipts,
+        remarks: req.body.remarks,
+      },
+      { new: true },
+    );
     res.json(transaction);
   } catch (error) {
     next(error);
   }
 }
 
-export async function deleteTransaction(req: Request, res: Response, next: NextFunction) {
-  const transactionId = req.params.id;
-  try {
-    const transaction = await Transaction.findByIdAndDelete(transactionId);
-    res.json({ message: 'Transaction successfully deleted', transaction });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function getTransactionsByOrganizationAndYear(
+export async function deleteTransaction(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
-  const organizationId = req.params.organizationId;
-  const year = Number(req.params.year);
-
   try {
-    const transactions = await Transaction.find({
-      organization: organizationId,
-      transaction_at: {
-        $gte: new Date(year, 0, 1),
-        $lt: new Date(year, 11, 31, 23, 59, 59),
-      },
-    });
-    res.json(transactions);
+    const transaction = await Transaction.findByIdAndDelete(req.params.id);
+    res.json(transaction);
   } catch (error) {
     next(error);
   }

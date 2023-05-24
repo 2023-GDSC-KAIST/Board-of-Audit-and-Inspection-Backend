@@ -8,6 +8,6 @@ const router: Router = express.Router();
 router.use('/organization', organizationRouter);
 router.use('/budget', budgetRouter);
 router.use('/item', itemRouter);
-router.use('/transaction', transactionRouter);
+router.use('/transactions', transactionRouter);
 
 export const applicationRouter: Router = router;
