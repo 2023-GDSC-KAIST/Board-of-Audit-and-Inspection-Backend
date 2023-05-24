@@ -7,6 +7,7 @@ router
   .post(ItemController.create);
 
 router
+<<<<<<< HEAD
   .route('/:id')
   .patch(ItemController.modify)
 
@@ -15,3 +16,15 @@ router
 router.route('/getItemYear/:year').get(ItemController.getByYear);
 router.route('/getItemOrgan/:organization').get(ItemController.getByOrganization)
 export const itemRouter: Router = router;
+=======
+  .route('/:organization/:year')
+  .get(ItemController.listItems)
+  .post(ItemController.createItem);
+
+router
+  .route('/:id')
+  .put(ItemController.updateItem)
+  .delete(ItemController.deleteItem);
+
+export const itemRouter: Router = router;
+>>>>>>> develop

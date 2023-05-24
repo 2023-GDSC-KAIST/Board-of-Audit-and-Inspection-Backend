@@ -1,8 +1,19 @@
 import express, { Router } from 'express';
-import { registerExpense, modifyExpense, getExpenseBudgets } from '../controllers/budget.controller';
+import { BudgetController } from '../controllers';
 
 const router: Router = express.Router();
-router.post('/:org_id/:year/expense', registerExpense)
-router.patch('/:org_id/:year/expense', modifyExpense)
-router.get('/:org_id/:year/expense', getExpenseBudgets)
+
+router
+  .route('/:organization/:year/income')
+  .get(BudgetController.getBudgetIncome)
+  .post(BudgetController.createBudgetIncome);
+
+router
+  .route('/:organization/:year/expense')
+  .get(BudgetController.getExpenseBudgets)
+  .post(BudgetController.createExpense);
+
+// TODO : 수입 / 지출 분리
+router.route('/id').put(BudgetController.updateBudgetIncome);
+
 export const budgetRouter: Router = router;

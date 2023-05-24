@@ -16,6 +16,7 @@ export class Application {
     this._server.use(bodyParser.urlencoded({ extended: true }));
     this._server.use(cors());
     this._server.use(this.logRequest);
+    this._server.use(this.errorHandler);
     this._server.use(applicationRouter);
     this.connectToDatabase();
   }
@@ -34,6 +35,17 @@ export class Application {
   private logRequest(req: Request, res: Response, next: NextFunction) {
     logger.info(`Request URL: ${req.originalUrl} Method: ${req.method}`);
     next();
+  }
+
+  private errorHandler(
+    err: Error,
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    logger.error(err.message);
+    res.status(500);
+    res.send(err.message);
   }
 
   public startServer(): void {

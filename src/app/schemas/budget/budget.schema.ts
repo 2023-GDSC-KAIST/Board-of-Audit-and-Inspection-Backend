@@ -18,6 +18,10 @@ const BudgetSchema = new Schema<IBudget>({
     ref: 'Item',
     required: true,
   },
+  year: {
+    type: Number,
+    required: true,
+  },
   budget: {
     type: Number,
     required: true,
