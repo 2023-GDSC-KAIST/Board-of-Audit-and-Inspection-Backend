@@ -7,6 +7,7 @@ router
   .route('/')
   .get(OrganizationController.listOrganizations)
   .post(OrganizationController.createOrganization)
+  .put(OrganizationController.updateOrganization)
   .delete(OrganizationController.deleteOrganization);
 
 export const organizationRouter: Router = router;

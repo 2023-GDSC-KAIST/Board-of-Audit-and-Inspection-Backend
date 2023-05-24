@@ -39,6 +39,29 @@ export async function createOrganization(
   }
 }
 
+export async function updateOrganization(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const organization = await Organization.findOneAndUpdate(
+      {
+        name: req.body.originalName,
+      },
+      {
+        name: req.body.newName,
+      },
+      {
+        new: true,
+      },
+    );
+    res.json(organization);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function deleteOrganization(
   req: Request,
   res: Response,
