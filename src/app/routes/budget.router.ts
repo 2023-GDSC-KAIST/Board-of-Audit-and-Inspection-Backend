@@ -3,18 +3,17 @@ import { BudgetController } from '../controllers';
 
 const router: Router = express.Router();
 
-export const budgetRouter: Router = router;
-
 router
   .route('/:organization/:year/income')
   .get(BudgetController.getBudgetIncome)
   .post(BudgetController.createBudgetIncome);
 
-/* Create new budget(income) */
-router.post('/:org_id/:year/income', BudgetController.createBudgetIncome);
+router
+  .route('/:organization/:year/expense')
+  .get(BudgetController.getExpenseBudgets)
+  .post(BudgetController.createExpense);
 
 // TODO : 수입 / 지출 분리
 router.route('/id').put(BudgetController.updateBudgetIncome);
 
-/* Get budgets(income) by org_id and year */
-// router.get('/:org_id/:year/income', BudgetController.getBudgetIncome);
+export const budgetRouter: Router = router;

@@ -23,9 +23,9 @@ export class Application {
 
   private async connectToDatabase() {
     const db = mongoose.connection;
-    db.on('error', logger.error);
+    db.on('error', console.error);
     db.once('open', function () {
-      logger.info('Connected to mongod server');
+      logger.info('Connected to mongodb server');
     });
 
     mongoose.set('strictQuery', true);

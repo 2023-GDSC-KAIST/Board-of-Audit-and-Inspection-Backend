@@ -11,3 +11,4 @@ router
   .delete(OrganizationController.deleteOrganization);
 
 export const organizationRouter: Router = router;
+
