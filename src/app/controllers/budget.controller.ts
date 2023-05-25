@@ -24,6 +24,7 @@ export async function createExpense(
       {
         organization: organization,
         year: req.params.year,
+        type: req.body.manager,
         fund_source: req.body.fund_source,
         item: req.body.item,
         budget: req.body.budget,
@@ -58,6 +59,7 @@ export async function updateExpense(
       req.params.id,
       {
         fund_source: req.body.fund_source,
+        manager: req.body.manager,
         budget: req.body.budget,
         remarks: req.body.remarks,
       },

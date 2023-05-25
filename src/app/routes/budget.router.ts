@@ -4,10 +4,6 @@ import { BudgetController } from '../controllers';
 const router: Router = express.Router();
 
 router
-  .route('/:organization/:year/settlement')
-  .get(BudgetController.getSettlementByOrganizationAndYear);
-
-router
   .route('/:organization/:year/income')
   .get(BudgetController.getBudgetIncome)
   .post(BudgetController.createBudgetIncome);
@@ -22,5 +18,9 @@ router
   .route('/:id')
   .put(BudgetController.updateBudgetIncome)
   .delete(BudgetController.deleteBudget);
+
+router
+  .route('/:organization/:year/settlement')
+  .get(BudgetController.getSettlementByOrganizationAndYear);
 
 export const budgetRouter: Router = router;
