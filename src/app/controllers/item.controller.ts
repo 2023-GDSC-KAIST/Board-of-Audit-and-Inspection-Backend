@@ -53,6 +53,7 @@ export async function createItem(
         item: req.body.item,
         sub_item: req.body.sub_item,
         detail_item: req.body.detail_item,
+        item_code: req.body.item_code,
       },
       {
         organization: organization,
@@ -60,6 +61,7 @@ export async function createItem(
         item: req.body.item,
         sub_item: req.body.sub_item,
         detail_item: req.body.detail_item,
+        item_code: req.body.item_code,
       },
       {
         upsert: true,
@@ -100,6 +102,7 @@ export async function updateItem(
         item: req.body.item,
         sub_item: req.body.sub_item,
         detail_item: req.body.detail_item,
+        item_code: req.body.item_code,
       },
       { new: true },
     );
@@ -121,4 +124,3 @@ export async function deleteItem(
     next(error);
   }
 }
-

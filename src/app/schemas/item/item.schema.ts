@@ -20,6 +20,10 @@ const ItemSchema = new Schema<IItem>({
   detail_item: {
     type: String,
   },
+  item_code: {
+    type: String,
+    required: true,
+  },
 });
 
 // item & sub_item & detail_item이 모두 동시에 존재하면 안됨
