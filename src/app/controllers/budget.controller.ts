@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { Budget, Organization, Transaction } from '../schemas';
+import { Budget, Item, Organization, Transaction } from '../schemas';
 
 export async function createExpense(
   req: Request,
@@ -216,114 +216,113 @@ export async function getSettlementByOrganizationAndYear(
   res: Response,
   next: NextFunction,
 ) {
-  const settlementOrganization = req.params.organization;
+  const organization = await Organization.findOne({
+    name: req.params.organization,
+  });
+  if (!organization) {
+    return res.status(404).send('organization not found');
+  }
   const settlementYear = req.params.year;
 
   try {
-    // const budget = await Budget.find({organization:budgetOrganization});
-    const transactionSettlement = await Transaction.aggregate([
-      {
-        $lookup: {
-          from: 'Item',
-          localField: 'item',
-          foreignField: 'year',
-          as: 'year',
-        },
-      },
-      {
-        $match: {
-          organization: { $eq: settlementOrganization },
-          year: { $eq: settlementYear },
-        },
-      },
-      {
-        $group: {
-          income: { $sum: '$income' },
-          expense: { $sum: '$expense' },
-        },
-      },
-    ]);
+    // const transactionSettlement = await Transaction.aggregate([
+    //   {
+    //     $lookup: {
+    //       from: 'Item',
+    //       localField: 'item',
+    //       foreignField: 'year',
+    //       as: 'year',
+    //     },
+    //   },
+    //   {
+    //     $match: {
+    //       organization: { $eq: settlementOrganization },
+    //       year: { $eq: settlementYear },
+    //     },
+    //   },
+    //   {
+    //     $group: {
+    //       income: { $sum: '$income' },
+    //       expense: { $sum: '$expense' },
+    //     },
+    //   },
+    // ]);
     const budgetIncome = await Budget.aggregate([
       {
-        $lookup: {
-          from: 'Item',
-          localField: 'item',
-          foreignField: 'year',
-          as: 'year',
-        },
-      },
-      {
-        $lookup: {
-          from: 'Item',
-          localField: 'item',
-          foreignField: 'item',
-          as: 'income',
-        },
-      },
-      {
         $match: {
-          organization: { $eq: settlementOrganization },
-          year: { $eq: settlementYear },
-          income: { $ne: null },
+          $and: [
+            {
+              organization: organization,
+            },
+            {
+              year: req.params.year,
+            },
+          ],
         },
       },
-      {
-        $group: {
-          income: { $sum: '$budget' },
-        },
-      },
-    ]);
-    const budgetExpense = await Budget.aggregate([
-      {
-        $lookup: {
-          from: 'Item',
-          localField: 'item',
-          foreignField: 'year',
-          as: 'year',
-        },
-      },
-      {
-        $lookup: {
-          from: 'Item',
-          localField: 'item',
-          foreignField: 'item',
-          as: 'income',
-        },
-      },
-      {
-        $match: {
-          organization: { $eq: settlementOrganization },
-          year: { $eq: settlementYear },
-          income: { $eq: null },
-        },
-      },
-      {
-        $group: {
-          expense: { $sum: '$budget' },
-        },
-      },
-    ]);
-    const settlement: object[] = [
-      {
-        type: '수익',
-        budget: budgetIncome[0].income,
-        settlement: transactionSettlement[0].income,
-        execute_rate: transactionSettlement[0].income / budgetIncome[0].income,
-      },
-      {
-        type: '지출',
-        budget: budgetExpense[0].expense,
-        settlement: transactionSettlement[0].expense,
-        execute_rate:
-          transactionSettlement[0].expense / budgetExpense[0].expense,
-      },
-    ];
-    const result = {
-      total: transactionSettlement[0].income - transactionSettlement[0].expense,
-      settlement,
-    };
+      // {
+      //   $lookup: {
+      //     from: Item.collection.name,
+      //     localField: 'item',
+      //     foreignField: '_id',
+      //     as: 'item_info',
+      //   },
+      // },
+      // {
+      //   $match: {
+      //     '$item_info.item': { $ne: null },
+      //   },
+      // },
+      // {
+      //   $group: {
+      //     '$item_info.item': { $sum: '$budget' },
+      //   },
+      // },
+    ]).exec();
+    // const budgetExpense = await Budget.aggregate([
+    //   {
+    //     $lookup: {
+    //       from: 'Item',
+    //       localField: 'item',
+    //       foreignField: 'item',
+    //       as: 'income',
+    //     },
+    //   },
+    //   {
+    //     $match: {
+    //       organization: { $eq: settlementOrganization },
+    //       year: { $eq: settlementYear },
+    //       income: { $eq: null },
+    //     },
+    //   },
+    //   {
+    //     $group: {
+    //       expense: { $sum: '$budget' },
+    //     },
+    //   },
+    // ]);
+    // const settlement: object[] = [
+    //   {
+    //     type: '수익',
+    //     budget: budgetIncome[0].income,
+    //     settlement: transactionSettlement[0].income,
+    //     execute_rate: transactionSettlement[0].income / budgetIncome[0].income,
+    //   },
+    //   {
+    //     type: '지출',
+    //     budget: budgetExpense[0].expense,
+    //     settlement: transactionSettlement[0].expense,
+    //     execute_rate:
+    //       transactionSettlement[0].expense / budgetExpense[0].expense,
+    //   },
+    // ];
+    // const result = {
+    //   total: transactionSettlement[0].income - transactionSettlement[0].expense,
+    //   settlement,
+    // };
     //    logger.info(budget);
-    res.json(result);
+    // res.json(result);
+    res.json(budgetIncome);
   } catch (error) {
     next(error);
   }
