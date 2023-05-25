@@ -14,6 +14,9 @@ router
   .post(BudgetController.createExpense);
 
 // TODO : 수입 / 지출 분리
-router.route('/id').put(BudgetController.updateBudgetIncome);
+router
+  .route('/:id')
+  .put(BudgetController.updateBudgetIncome)
+  .delete(BudgetController.deleteBudget);
 
 export const budgetRouter: Router = router;

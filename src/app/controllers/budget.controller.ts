@@ -172,13 +172,6 @@ export async function updateBudgetIncome(
   next: NextFunction,
 ) {
   try {
-    const organization = await Organization.findOne({
-      name: req.params.organization,
-    });
-    if (!organization) {
-      return res.status(404).send('organization not found');
-    }
-
     // fund_source, budget, remarks만 수정가능함.
     const budget = await Budget.findByIdAndUpdate(
       req.params.id,
@@ -191,6 +184,19 @@ export async function updateBudgetIncome(
         new: true,
       },
     );
+    res.json(budget);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteBudget(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const budget = await Budget.findByIdAndRemove(req.params.id);
     res.json(budget);
   } catch (error) {
     next(error);
