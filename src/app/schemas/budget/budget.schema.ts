@@ -8,6 +8,9 @@ const BudgetSchema = new Schema<IBudget>({
     ref: 'Organization',
     required: true,
   },
+  manager: {
+    type: String,
+  },
   fund_source: {
     type: String,
     enum: FundSource,
