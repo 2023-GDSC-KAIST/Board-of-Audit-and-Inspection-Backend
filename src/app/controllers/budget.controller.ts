@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { Budget, Organization } from '../schemas';
+import { Budget, Organization, Item } from '../schemas';
 
 export async function createExpense(
   req: Request,
@@ -140,6 +140,12 @@ export async function createBudgetIncome(
     }
 
     //TODO: item validation
+    const item = await Item.findOne({
+      _id: req.body.item,
+    });
+    if (!item) {
+      return res.status(404).send('item not found');
+    }
     const budget = await Budget.findOneAndUpdate(
       {
         organization: organization,
