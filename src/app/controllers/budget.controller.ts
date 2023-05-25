@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { Budget, Item, Organization, Transaction } from '../schemas';
+import logger from '../util/logger';
+import { Types } from 'mongoose';
 
 export async function createExpense(
   req: Request,
@@ -13,6 +15,9 @@ export async function createExpense(
     if (!organization) {
       return res.status(404).send('organization not found');
     }
+
+    logger.debug(organization.toString());
+    logger.debug(req.params.year);
 
     //TODO: item validation
     const budget = await Budget.findOneAndUpdate(
@@ -222,107 +227,137 @@ export async function getSettlementByOrganizationAndYear(
   if (!organization) {
     return res.status(404).send('organization not found');
   }
-  const settlementYear = req.params.year;
 
   try {
-    // const transactionSettlement = await Transaction.aggregate([
-    //   {
-    //     $lookup: {
-    //       from: 'Item',
-    //       localField: 'item',
-    //       foreignField: 'year',
-    //       as: 'year',
-    //     },
-    //   },
-    //   {
-    //     $match: {
-    //       organization: { $eq: settlementOrganization },
-    //       year: { $eq: settlementYear },
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       income: { $sum: '$income' },
-    //       expense: { $sum: '$expense' },
-    //     },
-    //   },
-    // ]);
+    const transactionSettlement = await Transaction.aggregate([
+      {
+        $match: {
+          organization: organization._id,
+        },
+      },
+      {
+        $lookup: {
+          from: Item.collection.name,
+          localField: 'item',
+          foreignField: '_id',
+          pipeline: [
+            {
+              $match: {
+                year: parseInt(req.params.year),
+              },
+            },
+          ],
+          as: 'item_info',
+        },
+      },
+      {
+        $unwind: '$item_info',
+      },
+      {
+        $group: {
+          _id: '$_id',
+          inc: { $sum: '$income' },
+          exp: { $sum: '$expense' },
+        },
+      },
+    ]).exec();
     const budgetIncome = await Budget.aggregate([
       {
         $match: {
-          $and: [
-            {
-              organization: organization,
-            },
-            {
-              year: req.params.year,
-            },
-          ],
+          organization: organization._id,
+          year: parseInt(req.params.year),
         },
       },
-      // {
-      //   $lookup: {
-      //     from: Item.collection.name,
-      //     localField: 'item',
-      //     foreignField: '_id',
-      //     as: 'item_info',
-      //   },
-      // },
-      // {
-      //   $match: {
-      //     '$item_info.item': { $ne: null },
-      //   },
-      // },
-      // {
-      //   $group: {
-      //     '$item_info.item': { $sum: '$budget' },
-      //   },
-      // },
+      {
+        $lookup: {
+          from: Item.collection.name,
+          localField: 'item',
+          foreignField: '_id',
+          pipeline: [
+            {
+              $match: {
+                item: { $ne: null },
+              },
+            },
+          ],
+          as: 'item_info',
+        },
+      },
+      {
+        $unwind: '$item_info',
+      },
+      {
+        $group: {
+          _id: '$budget',
+          inc: { $sum: '$budget' },
+        },
+      },
     ]).exec();
-    // const budgetExpense = await Budget.aggregate([
-    //   {
-    //     $lookup: {
-    //       from: 'Item',
-    //       localField: 'item',
-    //       foreignField: 'item',
-    //       as: 'income',
-    //     },
-    //   },
-    //   {
-    //     $match: {
-    //       organization: { $eq: settlementOrganization },
-    //       year: { $eq: settlementYear },
-    //       income: { $eq: null },
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       expense: { $sum: '$budget' },
-    //     },
-    //   },
-    // ]);
-    // const settlement: object[] = [
-    //   {
-    //     type: '수익',
-    //     budget: budgetIncome[0].income,
-    //     settlement: transactionSettlement[0].income,
-    //     execute_rate: transactionSettlement[0].income / budgetIncome[0].income,
-    //   },
-    //   {
-    //     type: '지출',
-    //     budget: budgetExpense[0].expense,
-    //     settlement: transactionSettlement[0].expense,
-    //     execute_rate:
-    //       transactionSettlement[0].expense / budgetExpense[0].expense,
-    //   },
-    // ];
-    // const result = {
-    //   total: transactionSettlement[0].income - transactionSettlement[0].expense,
-    //   settlement,
-    // };
-    //    logger.info(budget);
-    // res.json(result);
-    res.json(budgetIncome);
+    const budgetExpense = await Budget.aggregate([
+      {
+        $match: {
+          organization: organization._id,
+          year: parseInt(req.params.year),
+        },
+      },
+      {
+        $lookup: {
+          from: Item.collection.name,
+          localField: 'item',
+          foreignField: '_id',
+          pipeline: [
+            {
+              $match: {
+                item: null,
+              },
+            },
+          ],
+          as: 'item_info',
+        },
+      },
+      {
+        $unwind: '$item_info',
+      },
+      {
+        $group: {
+          _id: '$budget',
+          exp: { $sum: '$budget' },
+        },
+      },
+    ]).exec();
+    let totalBudgetIncome = 0;
+    let totalBudgetExpense = 0;
+    let totalTransactionIncome = 0;
+    let totalTransactionExpense = 0;
+    for (let i = 0; i < budgetIncome.length; i++) {
+      totalBudgetIncome += budgetIncome[i].inc;
+    }
+    for (let i = 0; i < budgetExpense.length; i++) {
+      totalBudgetExpense += budgetExpense[i].inc;
+    }
+    for (let i = 0; i < transactionSettlement.length; i++) {
+      totalTransactionIncome += transactionSettlement[i].inc;
+      totalTransactionExpense += transactionSettlement[i].exp;
+    }
+    const settlement: object[] = [
+      {
+        type: '수익',
+        budget: totalBudgetIncome,
+        settlement: totalTransactionIncome,
+        execute_rate: (totalTransactionIncome / totalBudgetIncome) * 100,
+      },
+      {
+        type: '지출',
+        budget: totalBudgetExpense,
+        settlement: totalTransactionExpense,
+        execute_rate: (totalTransactionExpense / totalBudgetExpense) * 100,
+      },
+    ];
+    const result = {
+      total: totalTransactionIncome - totalTransactionExpense,
+      settlement,
+    };
+    res.json(result);
   } catch (error) {
     next(error);
   }
