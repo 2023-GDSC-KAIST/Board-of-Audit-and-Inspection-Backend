@@ -142,9 +142,10 @@ export async function createBudgetIncome(
     //TODO: item validation
     const item = await Item.findOne({
       _id: req.body.item,
+      year: req.params.year,
     });
     if (!item) {
-      return res.status(404).send('item not found');
+      return res.status(404).send('item not found. check id or year');
     }
     const budget = await Budget.findOneAndUpdate(
       {
