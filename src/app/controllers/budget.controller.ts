@@ -73,7 +73,7 @@ export async function updateExpense(
   }
 }
 
-export async function getExpenseBudgets(
+export async function getExpenseBudgets( // 주의: Execution rate는 백분율이 아니라 단순 비율임. settlement/budget
   req: Request,
   res: Response,
   next: NextFunction,
@@ -102,83 +102,79 @@ export async function getExpenseBudgets(
           ],
         },
       },
-      // {
-      //   $lookup: {
-      //     from: Transaction.collection.name,
-      //     localField: 'item',
-      //     foreignField: 'item',
-      //     as: 'transaction',
-      //   },
-      // },
-      // { $unwind: '$transaction' },
-      // {
-      //   $lookup: {
-      //     from: Item.collection.name,
-      //     localField: 'item',
-      //     foreignField: '_id',
-      //     as: 'items',
-      //   },
-      // },
-      // { $unwind: '$items' },
-      // {
-      //   $group: {
-      //     _id: { item: '$item', manager: '$manager', sub_item: '$items.sub_item' },
-      //     detail_item_budget: { $first: '$budget' },
-      //     detail_item: {$first: '$items.detail_item'},
-      //     fund_source: {$first: '$fund_source'},
-      //     detail_item_settlement: { $sum: '$transaction.expense' },
-      //     remarks: { $first: '$remarks' },
-      //     item_code: { $first: '$items.item_code' },
-      //   },
-      // },
-      // {
-      //   $group: {
-      //     _id: {sub_item: '$_id.sub_item', manager: '$_id.manager'},
-      //     sub_item_budget: { $sum: '$budget' },
-      //     sub_item_settlement: { $sum: '$settlement' },
-      //     items: {
-      //       $push: {
-      //         detail_item: '$_id.detail_item',
-      //         item_code: '$item_code',
-      //         detail_item_budget: '$detail_item_budget',
-      //         detail_item_settlement: '$detail_item_settlement',
-      //         remarks: '$remarks',
-      //         execution_rate: { $divide: ['$detail_item_settlement', '$detail_item_budget'] },
-      //       },
-      //     },
-      //   },
-      // },
-      // {
-      //   $group: {
-      //     _id: {manager: '$_id.manager'},
-      //     sub_items: {
-      //       $push: {
-
-      //       }
-      //     }
-      //     sub_item_budget: { $sum: '$budget' },
-      //     sub_item_settlement: { $sum: '$settlement' },
-      //     items: {
-      //       $push: {
-      //         detail_item: '$_id.detail_item',
-      //         item_code: '$item_code',
-      //         detail_item_budget: '$detail_item_budget',
-      //         detail_item_settlement: '$detail_item_settlement',
-      //         remarks: '$remarks',
-      //         execution_rate: { $divide: ['$detail_item_settlement', '$detail_item_budget'] },
-      //       },
-      //     },
-      //   },
-      // },
-      // {
-      //   $project: {
-      //     _id: 0,
-      //     fund_source: '$_id',
-      //     total_budget: '$total_budget',
-      //     total_settlement: '$total_settlement',
-      //     items: '$items',
-      //   },
-      // }
+      {
+        $lookup: {
+          from: Transaction.collection.name,
+          localField: 'item',
+          foreignField: 'item',
+          as: 'transaction',
+        },
+      },
+      { $unwind: '$transaction' },
+      {
+        $lookup: {
+          from: Item.collection.name,
+          localField: 'item',
+          foreignField: '_id',
+          as: 'items',
+        },
+      },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: { item: '$item', manager: '$manager', sub_item: '$items.sub_item',  },
+          detail_item_budget: { $first: '$budget' },
+          detail_item: {$first: '$items.detail_item'},
+          fund_source: {$first: '$fund_source'},
+          detail_item_settlement: { $sum: '$transaction.expense' },
+          remarks: { $first: '$remarks' },
+          item_code: { $first: '$items.item_code' },
+        },
+      },
+      {
+        $group: {
+          _id: {sub_item: '$_id.sub_item', manager: '$_id.manager'},
+          sub_item_budget: { $sum: '$detail_item_budget' },
+          sub_item_settlement: { $sum: '$detail_item_settlement' },
+          detail_items: {
+            $push: {
+              detail_item: '$detail_item',
+              item_code: '$item_code',
+              fund_source: '$fund_source',
+              detail_item_budget: '$detail_item_budget',
+              detail_item_settlement: '$detail_item_settlement',
+              remarks: '$remarks',
+              execution_rate: { $divide: ['$detail_item_settlement', '$detail_item_budget'] },
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {manager: '$_id.manager'},
+          total_budget: { $sum: '$sub_item_budget' },
+          total_settlement: { $sum: '$sub_item_settlement' },
+          sub_items: {
+            $push: {
+              sub_item: '$_id.sub_item',
+              sub_item_budget: '$sub_item_budget' ,
+              sub_item_execution_rate: { $divide: ['$sub_item_settlement', '$sub_item_budget'] },
+          sub_item_settlement: '$sub_item_settlement' ,
+              detail_items: '$detail_items',
+            }
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          manager: '$_id.manager',
+          total_budget: '$total_budget',
+          total_settlement: '$total_settlement',
+          total_execution_rate: { $divide: ['$total_settlement', '$total_budget'] },
+          sub_items: '$sub_items',
+        },
+      }
     ]);
 
     // const result1 = await settlements.aggregate()
