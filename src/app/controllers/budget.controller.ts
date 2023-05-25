@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { Budget, Item, Organization, Transaction } from '../schemas';
+import logger from '../util/logger';
+import { Types } from 'mongoose';
 
 export async function createExpense(
   req: Request,
@@ -216,15 +218,16 @@ export async function getSettlementByOrganizationAndYear(
   res: Response,
   next: NextFunction,
 ) {
-  const organization = await Organization.findOne({
-    name: req.params.organization,
-  });
-  if (!organization) {
-    return res.status(404).send('organization not found');
-  }
-  const settlementYear = req.params.year;
-
   try {
+    const organization = await Organization.findOne({
+      name: req.params.organization,
+    });
+    if (!organization) {
+      return res.status(404).send('organization not found');
+    }
+
+    logger.debug(organization.toString());
+    logger.debug(req.params.year);
     // const transactionSettlement = await Transaction.aggregate([
     //   {
     //     $lookup: {
@@ -252,32 +255,39 @@ export async function getSettlementByOrganizationAndYear(
         $match: {
           $and: [
             {
-              organization: organization,
+              organization: organization._id,
             },
             {
-              year: req.params.year,
+              year: parseInt(req.params.year),
             },
           ],
         },
       },
-      // {
-      //   $lookup: {
-      //     from: Item.collection.name,
-      //     localField: 'item',
-      //     foreignField: '_id',
-      //     as: 'item_info',
-      //   },
-      // },
-      // {
-      //   $match: {
-      //     '$item_info.item': { $ne: null },
-      //   },
-      // },
-      // {
-      //   $group: {
-      //     '$item_info.item': { $sum: '$budget' },
-      //   },
-      // },
+      {
+        $lookup: {
+          from: Item.collection.name,
+          localField: 'item',
+          foreignField: '_id',
+          pipeline: [
+            {
+              $match: {
+                item: null,
+              },
+            },
+          ],
+          as: 'item_info',
+        },
+      },
+      {
+        $unwind: '$item_info',
+      },
+      {
+        $group: {
+          _id: {
+            sub_item: '$item_info.sub_item',
+          },
+        },
+      },
     ]).exec();
     // const budgetExpense = await Budget.aggregate([
     //   {
