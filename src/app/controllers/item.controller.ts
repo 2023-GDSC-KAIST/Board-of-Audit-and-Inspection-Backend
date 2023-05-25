@@ -80,13 +80,6 @@ export async function updateItem(
   next: NextFunction,
 ) {
   try {
-    const organization = await Organization.findOne({
-      name: req.params.organization,
-    });
-    if (!organization) {
-      return res.status(404).send('organization not found');
-    }
-
     if (req.body.item && (req.body.sub_item || req.body.detail_item)) {
       return res
         .status(400)

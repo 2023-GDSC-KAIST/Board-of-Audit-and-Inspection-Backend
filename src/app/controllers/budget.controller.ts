@@ -118,14 +118,80 @@ export async function getBudgetIncome(
       return res.status(404).send('organization not found');
     }
 
-    const budgets = await Budget.find({
-      organization: organization,
-      year: req.params.year,
-      budget: {
-        $gte: 0,
+    const settlements = await Budget.aggregate([
+      {
+        $match: {
+          $and: [
+            {
+              organization: organization._id,
+            },
+            {
+              year: parseInt(req.params.year),
+            },
+            {
+              manager: { $eq: null },
+            },
+          ],
+        },
       },
-    });
-    res.json(budgets);
+      {
+        $lookup: {
+          from: Transaction.collection.name,
+          localField: 'item',
+          foreignField: 'item',
+          as: 'transaction',
+        },
+      },
+      { $unwind: '$transaction' },
+      {
+        $lookup: {
+          from: Item.collection.name,
+          localField: 'item',
+          foreignField: '_id',
+          as: 'items',
+        },
+      },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: { item: '$item', fund_source: '$fund_source' },
+          budget: { $first: '$budget' },
+          settlement: { $sum: '$transaction.income' },
+          remarks: { $first: '$remarks' },
+          item_code: { $first: '$items.item_code' },
+        },
+      },
+      {
+        $group: {
+          _id: '$_id.fund_source',
+          total_budget: { $sum: '$budget' },
+          total_settlement: { $sum: '$settlement' },
+          items: {
+            $push: {
+              item: '$_id.item',
+              item_code: '$item_code',
+              budget: '$budget',
+              settlement: '$settlement',
+              remarks: '$remarks',
+              execution_rate: { $divide: ['$settlement', '$budget'] },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          fund_source: '$_id',
+          total_budget: '$total_budget',
+          total_settlement: '$total_settlement',
+          items: '$items',
+        },
+      }
+    ]);
+
+    // const result1 = await settlements.aggregate()
+    // res.json(budgets);
+    res.json(settlements);
   } catch (error) {
     next(error);
   }
