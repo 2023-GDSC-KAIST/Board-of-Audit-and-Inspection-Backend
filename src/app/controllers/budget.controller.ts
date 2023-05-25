@@ -24,7 +24,7 @@ export async function createExpense(
       {
         organization: organization,
         year: req.params.year,
-        type: req.body.manager,
+        manager: req.body.manager,
         fund_source: req.body.fund_source,
         item: req.body.item,
         budget: req.body.budget,
@@ -86,16 +86,106 @@ export async function getExpenseBudgets(
       return res.status(404).send('organization not found');
     }
 
-    const budgets = await Budget.find({
-      organization: organization,
-      year: req.params.year,
-      budget: {
-        $lt: 0,
+    const settlements = await Budget.aggregate([
+      {
+        $match: {
+          $and: [
+            {
+              organization: organization._id,
+            },
+            {
+              year: parseInt(req.params.year),
+            },
+            {
+              manager: { $ne: null },
+            },
+          ],
+        },
       },
-    });
-    res.json(budgets);
-  } catch (err) {
-    next(err);
+      // {
+      //   $lookup: {
+      //     from: Transaction.collection.name,
+      //     localField: 'item',
+      //     foreignField: 'item',
+      //     as: 'transaction',
+      //   },
+      // },
+      // { $unwind: '$transaction' },
+      // {
+      //   $lookup: {
+      //     from: Item.collection.name,
+      //     localField: 'item',
+      //     foreignField: '_id',
+      //     as: 'items',
+      //   },
+      // },
+      // { $unwind: '$items' },
+      // {
+      //   $group: {
+      //     _id: { item: '$item', manager: '$manager', sub_item: '$items.sub_item' },
+      //     detail_item_budget: { $first: '$budget' },
+      //     detail_item: {$first: '$items.detail_item'},
+      //     fund_source: {$first: '$fund_source'},
+      //     detail_item_settlement: { $sum: '$transaction.expense' },
+      //     remarks: { $first: '$remarks' },
+      //     item_code: { $first: '$items.item_code' },
+      //   },
+      // },
+      // {
+      //   $group: {
+      //     _id: {sub_item: '$_id.sub_item', manager: '$_id.manager'},
+      //     sub_item_budget: { $sum: '$budget' },
+      //     sub_item_settlement: { $sum: '$settlement' },
+      //     items: {
+      //       $push: {
+      //         detail_item: '$_id.detail_item',
+      //         item_code: '$item_code',
+      //         detail_item_budget: '$detail_item_budget',
+      //         detail_item_settlement: '$detail_item_settlement',
+      //         remarks: '$remarks',
+      //         execution_rate: { $divide: ['$detail_item_settlement', '$detail_item_budget'] },
+      //       },
+      //     },
+      //   },
+      // },
+      // {
+      //   $group: {
+      //     _id: {manager: '$_id.manager'},
+      //     sub_items: {
+      //       $push: {
+
+      //       }
+      //     }
+      //     sub_item_budget: { $sum: '$budget' },
+      //     sub_item_settlement: { $sum: '$settlement' },
+      //     items: {
+      //       $push: {
+      //         detail_item: '$_id.detail_item',
+      //         item_code: '$item_code',
+      //         detail_item_budget: '$detail_item_budget',
+      //         detail_item_settlement: '$detail_item_settlement',
+      //         remarks: '$remarks',
+      //         execution_rate: { $divide: ['$detail_item_settlement', '$detail_item_budget'] },
+      //       },
+      //     },
+      //   },
+      // },
+      // {
+      //   $project: {
+      //     _id: 0,
+      //     fund_source: '$_id',
+      //     total_budget: '$total_budget',
+      //     total_settlement: '$total_settlement',
+      //     items: '$items',
+      //   },
+      // }
+    ]);
+
+    // const result1 = await settlements.aggregate()
+    // res.json(budgets);
+    res.json(settlements);
+  } catch (error) {
+    next(error);
   }
 }
 
