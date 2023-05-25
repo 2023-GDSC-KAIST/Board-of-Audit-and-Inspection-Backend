@@ -5,8 +5,10 @@ import { IItem } from '../item';
 
 export interface IBudget {
   organization: PopulatedDoc<IOrganization>;
+  manager: string;
   fund_source: FundSource;
   item: PopulatedDoc<IItem>;
+  year: number;
   budget: number;
   remarks: string;
 }

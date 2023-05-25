@@ -56,4 +56,16 @@ const TransactionSchema = new Schema<ITransaction>({
   },
 });
 
-export const Transaction = model<ITransaction>('Transaction', TransactionSchema);
+// Middleware: Transaction은 Income 또는 Expense 중 한 개에 해당하는 데이터만 가지고 있어야 함
+
+TransactionSchema.pre('save', function (next) {
+  // if (!(( this.income === 0 && this.expense !== 0 ) || ( this.income !== 0 && this.expense === 0 ))) {
+  //   next(new Error('Invalid transaction: Income and expense cannot be specified simultaneously for an item'));
+  // }
+  next();
+});
+
+export const Transaction = model<ITransaction>(
+  'Transaction',
+  TransactionSchema,
+);
