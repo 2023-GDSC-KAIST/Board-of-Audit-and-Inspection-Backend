@@ -4,7 +4,7 @@ import { TransactionController } from '../controllers';
 const router: Router = express.Router();
 
 router
-  .route('/:organization/:year/transaction')
+  .route('/:organization')
   .get(TransactionController.getTransactions)
   .post(TransactionController.createTransaction);
 
